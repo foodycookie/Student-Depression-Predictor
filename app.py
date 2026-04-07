@@ -28,7 +28,7 @@ with st.form("input_form"):
     
     age = st.number_input("Age", min_value=18, max_value=100, value=18, step=1)
     
-    city = st.selectbox("City", options=list(city_map.keys()))
+    city = st.selectbox("City", options=sorted(city_map.keys()))
     
     academic_pressure = st.number_input("Academic Pressure", min_value=0, max_value=5, value=3, step=1)
     
@@ -40,7 +40,7 @@ with st.form("input_form"):
     
     dietary_habits = st.selectbox("Dietary Habits", ["Unhealthy", "Moderate", "Healthy", "Others"])
     
-    degree = st.selectbox("Degree", options=list(degree_map.keys()))
+    degree = st.selectbox("Degree", options=sorted(degree_map.keys()))
     
     suicidal_thoughts = st.selectbox("Ever had suicidal thoughts?", ["Yes", "No"])
     

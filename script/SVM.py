@@ -33,6 +33,28 @@ median_financial_stress = df['Financial Stress'].median()
 df['Financial Stress'] = df['Financial Stress'].fillna(median_financial_stress)
 
 # ──────────────────────────────────────────────────────────────────────────────────────────
+# Check for bad values
+# print(df['Gender'].unique()) #object
+# print(df['City'].unique()) #object
+# print(df['Academic Pressure'].unique()) #float64
+# print(df['Study Satisfaction'].unique()) #float64
+# print(df['Sleep Duration'].unique()) #object
+# print(df['Dietary Habits'].unique()) #object
+# print(df['Degree'].unique()) #object
+# print(df['Have you ever had suicidal thoughts ?'].unique()) #object
+# print(df['Financial Stress'].unique()) #float64
+# print(df['Family History of Mental Illness'].unique()) #object
+# print(df['Depression'].unique()) #int64
+
+# print(f"Age range: {df['Age'].min()} to {df['Age'].max()}") #float64
+# print(f"CGPA range: {df['CGPA'].min()} to {df['CGPA'].max()}") #float64
+# print(f"Work/Study Hours range: {df['Work/Study Hours'].min()} to {df['Work/Study Hours'].max()}") #float64
+
+# Replace bad values for City with "Others"
+bad_values_for_city = ['City', 'Less Delhi', 'M.Tech', '3.0', 'Less than 5 Kalyan', 'ME', 'M.Com']
+df['City'] = df['City'].replace(bad_values_for_city, 'Others')
+
+# ──────────────────────────────────────────────────────────────────────────────────────────
 # Check for outliers
 numerical_columns = df.select_dtypes(include=['float64', 'int64']).columns.tolist()
 numerical_columns.remove('Depression')
@@ -131,7 +153,7 @@ X_test_scaled  = pd.DataFrame(X_test_scaled,  columns=X_test.columns)
 # Support Vector Machine Model
 # ──────────────────────────────────────────────────────────────────────────────────────────
 # Create and train the SVM model
-svm = SVC(kernel='linear')
+svm = SVC(kernel='linear', probability=True, random_state=42)
 
 svm.fit(X_train_scaled, y_train)
 
