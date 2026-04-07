@@ -3,8 +3,8 @@ import pandas as pd
 import streamlit as st
 
 # Load maps
-city_map = joblib.load('city_map.joblib')
-degree_map = joblib.load('degree_map.joblib')
+city_map = joblib.load('model/city_map.joblib')
+degree_map = joblib.load('model/degree_map.joblib')
 
 # Load scaler
 scaler = joblib.load('model/scaler.joblib')
