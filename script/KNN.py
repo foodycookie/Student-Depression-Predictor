@@ -1,7 +1,8 @@
 import joblib
+import numpy as np
 import pandas as pd
 from imblearn.over_sampling import SMOTE
-from sklearn.metrics import classification_report
+from sklearn.metrics import accuracy_score, classification_report, f1_score
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
@@ -152,9 +153,6 @@ X_test_scaled  = pd.DataFrame(X_test_scaled,  columns=X_test.columns)
 # ─────────────────────────────────────────────────────────────────────────────
 # Find Best K Value
 # ─────────────────────────────────────────────────────────────────────────────
-# import numpy as np
-# from sklearn.metrics import f1_score
-
 # k_values = range(1, np.sqrt(X_train_scaled.shape[0]).astype(int) + 1)
 # f1_scores_list = []
 
@@ -181,6 +179,9 @@ knn.fit(X_train_scaled, y_train)
 
 y_pred = knn.predict(X_test_scaled)
 
+# print(accuracy_score(y_train, knn.predict(X_train_scaled)))
+# print(accuracy_score(y_test, knn.predict(X_test_scaled)))
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Evaluation
 # ─────────────────────────────────────────────────────────────────────────────
@@ -206,12 +207,12 @@ precision = TP / (TP + FP) if (TP + FP) != 0 else 0
 recall = TP / (TP + FN) if (TP + FN) != 0 else 0
 
 # F1-score (Harmonic mean of precision and recall, balances both metrics)
-f1_score = (2 * precision * recall) / (precision + recall) if (precision + recall) != 0 else 0
+f1score = (2 * precision * recall) / (precision + recall) if (precision + recall) != 0 else 0
 
 print(f"Accuracy : {accuracy:.4f}")
 print(f"Precision: {precision:.4f}")
 print(f"Recall   : {recall:.4f}")
-print(f"F1-score : {f1_score:.4f}")
+print(f"F1-score : {f1score:.4f}")
 
 print(classification_report(y_test, y_pred))
 
