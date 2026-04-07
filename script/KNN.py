@@ -56,17 +56,13 @@ df = pd.get_dummies(df, columns=['Gender'], drop_first=True)
 # print(f"(One-Hot) Gender > {[column for column in df.columns if 'Gender' in column]}")
 
 # City, Degree: Using Frequency Encoding (High cardinality, no meaningful order)
-for column in ['City', 'Degree']:
-    frequency_map = df[column].value_counts(normalize=True)
-    df[column] = df[column].map(frequency_map)
-    # print(f"(Frequency) {column:<15} > replaced with category frequency (0-1)")
-
 city_map = df['City'].value_counts(normalize=True).to_dict()
-degree_map = df['Degree'].value_counts(normalize=True).to_dict()
+df['City'] = df['City'].map(city_map)
+# print(f"(Frequency) City > replaced with category frequency (0-1)")
 
-# Frequency encoding for City and Degree
-city_freq_map = df['City'].value_counts(normalize=True).to_dict()
-degree_freq_map = df['Degree'].value_counts(normalize=True).to_dict()
+degree_map = df['Degree'].value_counts(normalize=True).to_dict()
+df['Degree'] = df['Degree'].map(degree_map)
+# print(f"(Frequency) Degree > replaced with category frequency (0-1)")
 
 df['City'] = df['City'].map(city_freq_map)
 df['Degree'] = df['Degree'].map(degree_freq_map)
@@ -120,8 +116,8 @@ IMBALANCE_THRESHOLD = 0.50
 
 if ratio < IMBALANCE_THRESHOLD:
     smote = SMOTE(random_state=42)
-    X, y = smote.fit_resample(X, y)
-    # print(f"After SMOTE > Class 0: {sum(y == 0)}, Class 1: {sum(y == 1)}")
+    X_train, y_train = smote.fit_resample(X_train, y_train)
+    # print(f"After SMOTE > Class 0: {sum(y_train == 0)}, Class 1: {sum(y_train == 1)}")
     
 # ──────────────────────────────────────────────────────────────────────────────────────────
 # Feature scaling
@@ -205,5 +201,6 @@ print(classification_report(y_test, y_pred))
 # ─────────────────────────────────────────────────────────────────────────────
 joblib.dump(city_map, 'model/city_map.joblib')
 joblib.dump(degree_map, 'model/degree_map.joblib')
+joblib.dump(X_train.columns.tolist(), 'model/feature_columns.joblib')
 joblib.dump(scaler, 'model/scaler.joblib')
 joblib.dump(knn, 'model/knn_model.joblib')

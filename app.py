@@ -6,6 +6,9 @@ import streamlit as st
 city_map = joblib.load('model/city_map.joblib')
 degree_map = joblib.load('model/degree_map.joblib')
 
+# Load feature columns
+feature_columns = joblib.load('model/feature_columns.joblib')
+
 # Load scaler
 scaler = joblib.load('model/scaler.joblib')
 
@@ -93,30 +96,23 @@ if submitted:
         "Family History of Mental Illness": [family_history_map[family_history]]
     })
     
+    input_df = input_df[feature_columns]
+    
     # Scale features
     input_scaled = scaler.transform(input_df)
     
     if model_choice == "ANN":
         prediction = ann.predict(input_scaled)[0]
-        probability = ann.predict_proba(input_scaled)[0][1]
-        
+        prediction_probability = ann.predict_proba(input_scaled)[0][1]
+
     elif model_choice == "KNN":
         prediction = knn.predict(input_scaled)[0]
-        probability = knn.predict_proba(input_scaled)[0][1]
-        
+        prediction_probability = knn.predict_proba(input_scaled)[0][1]
+
     elif model_choice == "SVM":
         prediction = svm.predict(input_scaled)[0]
-        # SVM might output 0/1 or probability, ensure proper formatting
-        if hasattr(svm, "predict_proba"):
-            probability = svm.predict_proba(input_scaled)[0][1]
-        else:
-            # If output is already 0/1
-            probability = prediction  
+        prediction_probability = svm.predict_proba(input_scaled)[0][1] 
             
-    # Predict
-    prediction = svm.predict(input_scaled)[0]
-    prediction_probability = svm.predict_proba(input_scaled)[0][1]
-    
     # Show results
     if prediction == 1:
         st.error(f"Depression! (Confidence: {prediction_probability:.2f})")
