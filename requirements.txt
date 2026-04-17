@@ -1,7 +1,10 @@
 imbalanced-learn
 joblib
 matplotlib
+numpy
 pandas
 scikit-learn
+scipy
+seaborn
 streamlit
 xgboost

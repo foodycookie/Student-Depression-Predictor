@@ -4,8 +4,10 @@
 
 import joblib
 import matplotlib.pyplot as plt
+import numpy as np
 import os
 import pandas as pd
+import seaborn as sns
 import warnings
 
 os.makedirs("model", exist_ok=True)
@@ -14,6 +16,7 @@ os.makedirs("photo", exist_ok=True)
 warnings.filterwarnings('ignore')
 
 from imblearn.over_sampling import SMOTE
+from scipy.stats import chi2_contingency
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, ConfusionMatrixDisplay, f1_score, precision_score, recall_score
 from sklearn.model_selection import RandomizedSearchCV, train_test_split
@@ -82,7 +85,7 @@ for col in numeric_cols:
     print(f"  Potential outliers: {len(outliers)}")
     print()
 
-print("Unique values in specific columns:")
+print("Unique values in categorical columns:")
 print()
 print(df['Gender'].unique())
 print()
@@ -100,10 +103,8 @@ print(df['Sleep Duration'].unique())
 print()
 print(df['Dietary Habits'].unique())
 print()
-
 print(df['Degree'].unique())
 print()
-
 print(df['Have you ever had suicidal thoughts ?'].unique())
 print()
 print(df['Financial Stress'].unique())
@@ -133,6 +134,74 @@ def map_degree(deg):
 
 df['Degree_Level'] = df['Degree'].apply(map_degree)
 df = df.drop(["Degree"], axis=1)
+
+# ----------------------------------------------------------------------------------------------------------------------------------
+
+# Correlation Analysis
+
+numeric_cols = ["Age", "CGPA", "Work/Study Hours"]
+categorical_cols = ["Gender", "Profession", "Academic Pressure", "Work Pressure", "Study Satisfaction", "Job Satisfaction", "Sleep Duration", "Dietary Habits", "Degree_Level", "Have you ever had suicidal thoughts ?", "Financial Stress", "Family History of Mental Illness", "Depression"]
+
+print("\nNumeric Correlation (Pearson)")
+print(df[numeric_cols].corr().round(2).to_string())
+
+def cramers_v(col1, col2):
+    confusion_matrix = pd.crosstab(col1, col2)
+    chi2 = chi2_contingency(confusion_matrix)[0]
+    n = confusion_matrix.sum().sum()
+    r, k = confusion_matrix.shape
+    return np.sqrt(chi2 / (n * (min(r, k) - 1)))
+
+print("\nCategorical Correlation (Cramér's V)")
+cramers_matrix = pd.DataFrame(index=categorical_cols, columns=categorical_cols, dtype=float)
+for col1 in categorical_cols:
+    for col2 in categorical_cols:
+        cramers_matrix.loc[col1, col2] = cramers_v(df[col1], df[col2])
+print(cramers_matrix.round(2).to_string())
+
+def eta_squared(num_col, cat_col):
+    groups = [group.values for _, group in num_col.groupby(cat_col)]
+    grand_mean = num_col.mean()
+    ss_between = sum(len(g) * (g.mean() - grand_mean) ** 2 for g in groups)
+    ss_total   = sum((x - grand_mean) ** 2 for g in groups for x in g)
+    return ss_between / ss_total if ss_total != 0 else 0
+
+print("\nNumeric-Categorical Correlation (Eta Squared)")
+eta_matrix = pd.DataFrame(index=numeric_cols, columns=categorical_cols, dtype=float)
+for num in numeric_cols:
+    for cat in categorical_cols:
+        eta_matrix.loc[num, cat] = eta_squared(df[num], df[cat])
+print(eta_matrix.round(2).to_string())
+
+# Plotting
+fig, axes = plt.subplots(1, 3, figsize=(30, 10))
+fig.suptitle('Correlation Analysis', fontsize=18, fontweight='bold')
+
+# Pearson heatmap
+sns.heatmap(df[numeric_cols].corr(), annot=True, fmt='.2f', cmap='coolwarm',
+            center=0, linewidths=0.5, ax=axes[0], annot_kws={"size": 10})
+axes[0].set_title("Numeric–Numeric\n(Pearson)", fontsize=12)
+axes[0].tick_params(axis='x', rotation=45)
+
+# Cramér's V heatmap
+sns.heatmap(cramers_matrix.astype(float), annot=True, fmt='.2f', cmap='YlOrRd',
+            vmin=0, vmax=1, linewidths=0.5, ax=axes[1], annot_kws={"size": 7})
+axes[1].set_title("Categorical–Categorical\n(Cramér's V)", fontsize=12)
+axes[1].tick_params(axis='x', rotation=90)
+axes[1].tick_params(axis='y', rotation=0)
+
+# Eta squared heatmap
+sns.heatmap(eta_matrix.astype(float), annot=True, fmt='.2f', cmap='BuGn',
+            vmin=0, vmax=1, linewidths=0.5, ax=axes[2], annot_kws={"size": 7})
+axes[2].set_title("Numeric–Categorical\n(Eta Squared)", fontsize=12)
+axes[2].tick_params(axis='x', rotation=90)
+axes[2].tick_params(axis='y', rotation=0)
+
+plt.tight_layout(pad=3.0)
+_fname = "photo/correlation_analysis.png"
+plt.savefig(_fname, bbox_inches='tight', dpi=300)
+plt.close()
+print(f'\nFile saved "{_fname}"')
 
 # ----------------------------------------------------------------------------------------------------------------------------------
 # Data Transformation and Encoding
